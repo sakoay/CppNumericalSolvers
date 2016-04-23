@@ -1,5 +1,3 @@
-git:
-  submodules: false
 language: cpp
 sudo: false
 compiler:
@@ -8,7 +6,7 @@ compiler:
 before_install:
   - chmod u+x get_dependencies.sh
   - ./get_dependencies.sh
-
+  - git submodule update --init --recursive
 script:
   - cp CppNumericalSolvers.config.example CppNumericalSolvers.config
   - mkdir build
