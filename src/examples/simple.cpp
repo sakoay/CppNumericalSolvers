@@ -29,9 +29,13 @@ int main(int argc, char const *argv[]) {
     Simple<double> f;
     Vector<double> x(2); x << -1, 2;
 
-    BfgsSolver<double>::Info info;   // Create an Info structure to control the solver
-    info.iterations = 10000;           // Set the maximum iterations to 10000
-    BfgsSolver<double> solver(info); // Create the solver with specified info struct
+    Criteria<double> stopAt = Criteria<double>::defaults();
+    stopAt.iterations = 10000;           // Set the maximum iterations to 10000
+    BfgsSolver<double> solver;           // Create the solver
+    solver.setStopCriteria(stopAt);
+    std::cout << "stop-crit:" << std::endl;
+    stopAt.print(std::cout);
+    std::cout << "start optimization" << std::endl;
     solver.minimize(f, x);
     std::cout << "f in argmin " << f(x) << std::endl;
     std::cout << "Number of iterations: " << solver.info().iterations << std::endl;

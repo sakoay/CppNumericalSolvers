@@ -143,7 +143,7 @@ class CMAesSolver : public ISolver<T, 1> {
     Vector<T> zeroVectorTemplate = Vector<T>::Zero(DIM);
 
     // CMA-ES Main Loop
-    for (this->m_info.iterations = 0; this->m_info.iterations < this->m_ctrl.iterations; ++this->m_info.iterations) {
+    for (size_t curIter = 0; curIter < this->m_stop.iterations; ++curIter) {
       std::vector<individual> pop;
 
       for (int i = 0; i < populationSize; ++i) {
@@ -168,7 +168,7 @@ class CMAesSolver : public ISolver<T, 1> {
       // printf("%i best cost so far %f\n", this->iterations_, bestCostSoFar );
 
       // any further update?
-      if (this->m_info.iterations == this->m_ctrl.iterations - 2)
+      if (curIter == this->m_stop.iterations - 2)
         break;
 
       // update mean (TODO: matrix-vec-multiplication with permutation matrix?)
@@ -230,7 +230,6 @@ class CMAesSolver : public ISolver<T, 1> {
       x0 = bestSol.pos;
     }
   }
-
 };
 
 } /* namespace cppoptlib */
