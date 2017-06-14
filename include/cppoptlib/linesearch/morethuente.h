@@ -76,8 +76,8 @@ class MoreThuente {
     Scalar fy         = finit;
     Scalar dgy        = dginit;
 
-    Scalar stmin;
-    Scalar stmax;
+    Scalar stmin      = 0;      // SAK
+    Scalar stmax      = 0;      // SAK
 
     while (true) {
 
@@ -91,16 +91,24 @@ class MoreThuente {
       }
 
       // Force the step to be within the bounds stpmax and stpmin.
+      mexPrintf("[[bound]]  %.5g", stp);
       stp = std::max(stp, stpmin);
       stp = std::min(stp, stpmax);
+      mexPrintf(" -> %.5g \n", stp);
 
       // Oops, let us return the last reliable values
       if (
       (brackt && ((stp <= stmin) || (stp >= stmax)))
       || (nfev >= maxfev - 1 ) || (infoc == 0)
       || (brackt && ((stmax - stmin) <= (xtol * stmax)))) {
+        mexPrintf("[[backtrack]]  %.5g", stp);
         stp = stx;
+        mexPrintf(" -> %.5g \n", stp);
       }
+
+      mexPrintf("[[stp]]  %.5g %.5g\n", stx, stp);
+      if (stp != stp)
+        mexErrMsgIdAndTxt("stp:stp", "Bad step %.5g.", stp);
 
       // test new point
       x = wa + stp * s;
@@ -109,6 +117,7 @@ class MoreThuente {
       nfev++;
       Scalar dg = g.dot(s);
       Scalar ftest1 = finit + stp * dgtest;
+      mexPrintf("[[g s]]  %.5g %.5g %.5g\n", g.squaredNorm(), s.squaredNorm(), dg);
 
       // all possible convergence tests
       if ((brackt & ((stp <= stmin) | (stp >= stmax))) | (infoc == 0))
@@ -156,8 +165,11 @@ class MoreThuente {
       }
 
       if (brackt) {
-        if (fabs(sty - stx) >= 0.66 * width1)
+        if (fabs(sty - stx) >= 0.66 * width1) {
+          mexPrintf("[[move]]  %.5g", stp);
           stp = stx + 0.5 * (sty - stx);
+          mexPrintf(" -> %.5g \n", stp);
+        }
         width1 = width;
         width = fabs(sty - stx);
       }
@@ -201,6 +213,8 @@ class MoreThuente {
       else
         stpf = stpc + (stpq - stpc) / 2;
       brackt = true;
+      mexPrintf("[[1]] stpf = %.5g %.5g %.5g %.5g \n", theta, s, gamma, dp);
+      mexPrintf("[[1]] stpf = %.5g %.5g %.5g %.5g %.5g %.5g %.5g %.5g %.5g %.5g \n", stpf, p,q,r, dp, stpc, stpq, dx,fx,fp);
     } else if (sgnd < 0.0) {
       info = 2;
       bound = false;
@@ -220,6 +234,7 @@ class MoreThuente {
       else
         stpf = stpq;
       brackt = true;
+      mexPrintf("[[2]] stpf = %.5g \n", stpf);
     } else if (fabs(dp) < fabs(dx)) {
       info = 3;
       bound = 1;
@@ -253,6 +268,7 @@ class MoreThuente {
         }
 
       }
+      mexPrintf("[[3]] stpf = %.5g \n", stpf);
     } else {
       info = 4;
       bound = false;
@@ -273,6 +289,7 @@ class MoreThuente {
       else {
         stpf = stpmin;
       }
+      mexPrintf("[[4]] stpf = %.5g \n", stpf);
     }
 
     if (fp > fx) {
@@ -293,14 +310,18 @@ class MoreThuente {
 
     stpf = std::min(stpmax, stpf);
     stpf = std::max(stpmin, stpf);
+    mexPrintf("[[stpf]]  %.5g", stp);
     stp = stpf;
+    mexPrintf(" -> %.5g \n", stp);
 
     if (brackt & bound) {
+      mexPrintf("[[boundf]]  %.5g", stp);
       if (sty > stx) {
         stp = std::min(stx + static_cast<Scalar>(0.66) * (sty - stx), stp);
       } else {
         stp = std::max(stx + static_cast<Scalar>(0.66) * (sty - stx), stp);
       }
+      mexPrintf(" -> %.5g \n", stp);
     }
 
     return 0;

@@ -1,11 +1,11 @@
 // CppNumericalSolver
+#ifndef BFGSSOLVER_H_
+#define BFGSSOLVER_H_
+
 #include <iostream>
 #include <Eigen/LU>
 #include "isolver.h"
 #include "../linesearch/morethuente.h"
-
-#ifndef BFGSSOLVER_H_
-#define BFGSSOLVER_H_
 
 namespace cppoptlib {
 
