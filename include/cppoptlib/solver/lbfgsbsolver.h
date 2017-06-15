@@ -212,8 +212,10 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
     MatrixType yHistory = MatrixType::Zero(DIM, 0);
     MatrixType sHistory = MatrixType::Zero(DIM, 0);
     TVector x = x0, g = x0;
-    Scalar f = problem.value(x);
-  problem.gradient(x, g);
+    //Scalar f = problem.value(x);
+    //problem.gradient(x, g);
+    Scalar f = problem.valueAndGradient(x, g);    // SAK
+
     // conv. crit.
     auto noConvergence =
     [&](TVector &x, TVector &g)->bool {
@@ -237,8 +239,9 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
       const Scalar rate = MoreThuente<TProblem, 1>::linesearch(x,  SubspaceMin-x ,  problem, alpha_init);
       // update current guess and function information
       x = x - rate*(x-SubspaceMin);
-      f = problem.value(x);
-      problem.gradient(x, g);
+      //f = problem.value(x);
+      //problem.gradient(x, g);
+      f = problem.valueAndGradient(x, g);    // SAK
       // prepare for next iteration
       TVector newY = g - g_old;
       TVector newS = x - x_old;

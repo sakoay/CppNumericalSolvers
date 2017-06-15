@@ -24,10 +24,11 @@ class WolfeHeuristic {
     Vector<T> x = x0;
 
     // evaluate phi(0)
-    T phi0 = objFunc.value(x0);
+    //T phi0 = objFunc.value(x0);
     // evaluate phi'(0)
     Vector<T> grad(x.rows());
-    objFunc.gradient(x, grad);
+    //objFunc.gradient(x, grad);
+    T phi0 = objFunc.valueAndGradient(x, grad);    // SAK
 
     T phi0_dash = searchDir.dot(grad);
 

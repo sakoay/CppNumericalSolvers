@@ -25,9 +25,10 @@ public:
         const Scalar rho = 0.9;
         Scalar alpha = alpha_init;
         Scalar f = objFunc.value(x + alpha * searchDir);
-        const Scalar f_in = objFunc.value(x);
+        //const Scalar f_in = objFunc.value(x);
         TVector grad(x.rows());
-        objFunc.gradient(x, grad);
+        //objFunc.gradient(x, grad);
+        const Scalar f_in = objFunc.valueAndGradient(x, grad);    // SAK
         const Scalar Cache = c * grad.dot(searchDir);
 
         while(f > f_in + alpha * Cache) {
@@ -62,11 +63,12 @@ class Armijo<ProblemType, 2> {
         Scalar alpha = 1.0;
 
         Scalar f = objFunc.value(x + alpha * searchDir);
-        const Scalar f_in = objFunc.value(x);
+        //const Scalar f_in = objFunc.value(x);
         const THessian  hessian(x.rows(), x.rows());
         objFunc.hessian(x, hessian);
         TVector grad(x.rows());
-        objFunc.gradient(x, grad);
+        //objFunc.gradient(x, grad);
+        const Scalar f_in = objFunc.valueAndGradient(x, grad);    // SAK
         const Scalar Cache = c * grad.dot(searchDir) + 0.5 * c*c * searchDir.transpose() * (hessian * searchDir);
 
         while(f > f_in + alpha * Cache) {

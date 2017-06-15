@@ -63,6 +63,12 @@ class Problem {
     finiteGradient(x, grad);
   }
 
+  // SAK : simultaneous request of value and gradient, for efficiency of calculations
+  virtual Scalar valueAndGradient(const  TVector &x,  TVector &grad) {
+    gradient(x, grad);
+    return value(x);
+  }
+
   /**
    * @brief This computes the hessian
    * @details should be overwritten by symbolic hessian, if solver relies on hessian

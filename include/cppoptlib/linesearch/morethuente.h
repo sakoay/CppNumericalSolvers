@@ -28,9 +28,10 @@ class MoreThuente {
     // assume step width
     Scalar ak = alpha_init;
 
-    Scalar fval = objFunc.value(x);
+    //Scalar fval = objFunc.value(x);
     TVector  g  = x.eval();
-    objFunc.gradient(x, g);
+    //objFunc.gradient(x, g);
+    Scalar fval = objFunc.valueAndGradient(x, g);    // SAK
 
     TVector s = searchDir.eval();
     TVector xx = x.eval();
@@ -104,8 +105,9 @@ class MoreThuente {
 
       // test new point
       x = wa + stp * s;
-      f = objFunc.value(x);
-      objFunc.gradient(x, g);
+      //f = objFunc.value(x);
+      //objFunc.gradient(x, g);
+      f = objFunc.valueAndGradient(x, g);    // SAK
       nfev++;
       Scalar dg = g.dot(s);
       Scalar ftest1 = finit + stp * dgtest;
