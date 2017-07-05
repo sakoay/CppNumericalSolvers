@@ -31,10 +31,12 @@ protected:
 
 public:
     BoundedProblem(int RunDim = CompileDim_) : Superclass() {
+      if (RunDim > 0) {   // SAK: must do this in case size is unknown at this point
         TVector infBound(RunDim);
         infBound.setConstant(std::numeric_limits<Scalar>::infinity());
         m_lowerBound = -infBound;
         m_upperBound = infBound;
+      }
     }
 
     BoundedProblem(const TVector &l, const TVector &u) :
