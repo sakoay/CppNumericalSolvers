@@ -79,7 +79,11 @@ class LbfgsSolver : public ISolver<ProblemType, 1> {
             x0 = x0 - rate * q;
 
             grad_old = grad;
+#ifdef SAK_DEBUG_PRINT
+            Scalar fValue = objFunc.valueAndGradient(x0, grad);
+#else
             objFunc.gradient(x0, grad);
+#endif
 
             s = x0 - x_old;
             y = grad - grad_old;
@@ -101,6 +105,13 @@ class LbfgsSolver : public ISolver<ProblemType, 1> {
             x_old = x0;
             // std::cout << "iter: "<<globIter<< ", f = " <<  objFunc.value(x0) << ", ||g||_inf "
             // <<gradNorm  << std::endl;
+#ifdef SAK_DEBUG_PRINT
+            mexPrintf(" [%5d]  f = %10.5g, ||g|| = %10.5g, x = [", globIter, fValue, grad.norm());
+            for (Eigen::Index iX = 0; iX < x0.size(); ++iX)
+              mexPrintf("%s %8.3g", iX ? "," : "", x0[iX]);
+            mexPrintf(" ]\n");
+            mexEvalString("drawnow");
+#endif
 
             iter++;
             globIter++;

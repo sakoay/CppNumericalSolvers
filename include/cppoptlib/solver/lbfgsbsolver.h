@@ -242,6 +242,15 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
       //f = problem.value(x);
       //problem.gradient(x, g);
       f = problem.valueAndGradient(x, g);    // SAK
+
+#ifdef SAK_DEBUG_PRINT
+      mexPrintf(" [%5d]  f = %10.5g (%10.5g), ||g|| = %10.5g, x = [", this->m_current.iterations, f, f_old-f, g.norm());
+      for (Eigen::Index iX = 0; iX < x.size(); ++iX)
+        mexPrintf("%s %8.3g", iX ? "," : "", x[iX]);
+      mexPrintf(" ]\n");
+      mexEvalString("drawnow");
+#endif
+
       // prepare for next iteration
       TVector newY = g - g_old;
       TVector newS = x - x_old;
