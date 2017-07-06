@@ -278,10 +278,15 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
         MM << D, L.transpose(), L, ((sHistory.transpose() * sHistory) * theta);
         M = MM.inverse();
       }
+#if 1
+      // SAK : switch to using adjustable criteria
+      this->m_current.fDelta  = std::abs(f_old - f);
+#else
       if (fabs(f_old - f) < 1e-8) {
         // successive function values too similar
         break;
       }
+#endif
       ++this->m_current.iterations;
       this->m_current.gradNorm = g.norm();
       this->m_status = checkConvergence(this->m_stop, this->m_current);
