@@ -10,14 +10,14 @@
 namespace cppoptlib {
 template<typename TProblem>
 class LbfgsbSolver : public ISolver<TProblem, 1> {
-  public:
-    using Superclass = ISolver<TProblem, 1>;
-    using typename Superclass::Scalar;
-    using typename Superclass::TVector;
-    using MatrixType = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
-    using VariableTVector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
-  protected:
-  // workspace matrices
+public:
+  using Superclass = ISolver<TProblem, 1>;
+  using typename Superclass::Scalar;
+  using typename Superclass::TVector;
+  using MatrixType = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
+  using VariableTVector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+protected:
+// workspace matrices
   MatrixType W, M;
   Scalar theta;
   int DIM;
@@ -57,15 +57,17 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
     for (int j = 0; j < DIM; j++) {
       if (g(j) == 0) {
         SetOfT.push_back(std::make_pair(j, std::numeric_limits<Scalar>::max()));
-      } else {
+      }
+      else {
         Scalar tmp = 0;
         if (g(j) < 0) {
           tmp = (x(j) - problem.upperBound()(j)) / g(j);
-        } else {
+        }
+        else {
           tmp = (x(j) - problem.lowerBound()(j)) / g(j);
         }
         SetOfT.push_back(std::make_pair(j, tmp));
-      if (tmp == 0) d(j) = 0;
+        if (tmp == 0) d(j) = 0;
       }
     }
     // sortedindices [1,0,2] means the minimal element is on the 1-st entry
@@ -98,7 +100,7 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
     // t                    :=  min{t_i : i in F}
     Scalar t = SetOfT[b].second;
     // \delta Scalar             :=  t - 0
-    Scalar dt = t ;
+    Scalar dt = t;
     // examination of subsequent segments
     while ((dt_min >= dt) && (i < DIM)) {
       if (d(b) > 0)
@@ -111,11 +113,11 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
       c += dt * p;
       // cache
       VariableTVector wbt = W.row(b);
-      f_prime += dt * f_doubleprime + (Scalar) g(b) * g(b) + (Scalar) theta * g(b) * zb - (Scalar) g(b) *
-      wbt.transpose() * (M * c);
-      f_doubleprime += (Scalar) - 1.0 * theta * g(b) * g(b)
-                       - (Scalar) 2.0 * (g(b) * (wbt.dot(M * p)))
-                       - (Scalar) g(b) * g(b) * wbt.transpose() * (M * wbt);
+      f_prime += dt * f_doubleprime + (Scalar)g(b) * g(b) + (Scalar)theta * g(b) * zb - (Scalar)g(b) *
+        wbt.transpose() * (M * c);
+      f_doubleprime += (Scalar)-1.0 * theta * g(b) * g(b)
+        - (Scalar) 2.0 * (g(b) * (wbt.dot(M * p)))
+        - (Scalar)g(b) * g(b) * wbt.transpose() * (M * wbt);
       f_doubleprime = std::max(std::numeric_limits<Scalar>::epsilon() * f_dp_orig, f_doubleprime);
       p += g(b) * wbt.transpose();
       d(b) = 0;
@@ -130,7 +132,7 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
     }
     dt_min = std::max(dt_min, (Scalar)0.0);
     t_old += dt_min;
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int ii = i; ii < x_cauchy.rows(); ii++) {
       x_cauchy(sortedIndices[ii]) = x(sortedIndices[ii]) + t_old * d(sortedIndices[ii]);
     }
@@ -150,7 +152,8 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
     for (unsigned int i = 0; i < n; i++) {
       if (du(i) > 0) {
         alphastar = std::min(alphastar, (problem.upperBound()(FreeVariables[i]) - x_cp(FreeVariables[i])) / du(i));
-      } else {
+      }
+      else {
         alphastar = std::min(alphastar, (problem.lowerBound()(FreeVariables[i]) - x_cp(FreeVariables[i])) / du(i));
       }
     }
@@ -163,7 +166,7 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
    * @param SubspaceMin [description]
    */
   void SubspaceMinimization(const TProblem &problem, TVector &x_cauchy, TVector &x, VariableTVector &c, TVector &g,
-  TVector &SubspaceMin) {
+                            TVector &SubspaceMin) {
     Scalar theta_inverse = 1 / theta;
     std::vector<int> FreeVariablesIndex;
     for (int i = 0; i < x_cauchy.rows(); i++) {
@@ -188,7 +191,8 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
     N = MatrixType::Identity(N.rows(), N.rows()) - M * N;
     // STEP: 5
     // v = N^{-1}*v
-    v = N.lu().solve(v);
+    if (v.size() > 0)     // SAK
+      v = N.lu().solve(v);
     // STEP: 6
     // HERE IS A MISTAKE IN THE ORIGINAL PAPER!
     VariableTVector du = -theta_inverse * r - theta_inverse * theta_inverse * WZ.transpose() * v;
@@ -201,7 +205,7 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
       SubspaceMin(FreeVariablesIndex[i]) = SubspaceMin(FreeVariablesIndex[i]) + dStar(i);
     }
   }
- public:
+public:
   void setHistorySize(const int hs) { m_historySize = hs; }
 
   void minimize(TProblem &problem, TVector &x0) {
@@ -217,34 +221,39 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
     Scalar f = problem.valueAndGradient(x, g);    // SAK
 
     // conv. crit.
+#if 0
     auto noConvergence =
-    [&](TVector &x, TVector &g)->bool {
+      [&](TVector &x, TVector &g)->bool {
       return (((x - g).cwiseMax(problem.lowerBound()).cwiseMin(problem.upperBound()) - x).template lpNorm<Eigen::Infinity>() >= 1e-4);
     };
+#else
+    const Scalar  tolX  = this->m_stop.xDelta < 0 ? -this->m_stop.xDelta : 1e-4;      // SAK tunable criteria
+#endif
     this->m_current.reset();
     this->m_status = Status::Continue;
-    while (problem.callback(this->m_current, x) && noConvergence(x, g) && (this->m_status == Status::Continue)) {
+    while (problem.callback(this->m_current, x) /*&& noConvergence(x, g)*/ && (this->m_status == Status::Continue)) 
+    {
       Scalar f_old = f;
       TVector x_old = x;
-    TVector g_old = g;
-      // STEP 2: compute the cauchy point
+      TVector g_old = g;
+        // STEP 2: compute the cauchy point
       TVector CauchyPoint = TVector::Zero(DIM);
       VariableTVector c = VariableTVector::Zero(W.cols());
-    getGeneralizedCauchyPoint(problem, x, g, CauchyPoint, c);
-      // STEP 3: compute a search direction d_k by the primal method for the sub-problem
+      getGeneralizedCauchyPoint(problem, x, g, CauchyPoint, c);
+        // STEP 3: compute a search direction d_k by the primal method for the sub-problem
       TVector SubspaceMin;
-    SubspaceMinimization(problem, CauchyPoint, x, c, g, SubspaceMin);
-      // STEP 4: perform linesearch and STEP 5: compute gradient
+      SubspaceMinimization(problem, CauchyPoint, x, c, g, SubspaceMin);
+        // STEP 4: perform linesearch and STEP 5: compute gradient
       Scalar alpha_init = 1.0;
-      const Scalar rate = MoreThuente<TProblem, 1>::linesearch(x,  SubspaceMin-x ,  problem, alpha_init);
+      const Scalar rate = MoreThuente<TProblem, 1>::linesearch(x, SubspaceMin - x, problem, alpha_init);
       // update current guess and function information
-      x = x - rate*(x-SubspaceMin);
+      x = x - rate*(x - SubspaceMin);
       //f = problem.value(x);
       //problem.gradient(x, g);
       f = problem.valueAndGradient(x, g);    // SAK
 
 #ifdef SAK_DEBUG_PRINT
-      mexPrintf(" [%5d]  f = %10.5g (%10.5g), ||g|| = %10.5g, x = [", this->m_current.iterations, f, f_old-f, g.norm());
+      mexPrintf(" [%5d]  f = %10.5g (%10.5g), ||g|| = %10.5g, x = [", this->m_current.iterations, f, f_old - f, g.norm());
       for (Eigen::Index iX = 0; iX < x.size(); ++iX)
         mexPrintf("%s %8.3g", iX ? "," : "", x[iX]);
       mexPrintf(" ]\n");
@@ -261,7 +270,8 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
         if (yHistory.cols() < m_historySize) {
           yHistory.conservativeResize(DIM, yHistory.cols() + 1);
           sHistory.conservativeResize(DIM, sHistory.cols() + 1);
-        } else {
+        }
+        else {
           yHistory.leftCols(m_historySize - 1) = yHistory.rightCols(m_historySize - 1).eval();
           sHistory.leftCols(m_historySize - 1) = sHistory.rightCols(m_historySize - 1).eval();
         }
@@ -280,24 +290,29 @@ class LbfgsbSolver : public ISolver<TProblem, 1> {
       }
 #if 1
       // SAK : switch to using adjustable criteria
-      this->m_current.fDelta  = std::abs(f_old - f);
+      this->m_current.fDelta = std::abs(f_old - f);
 #else
       if (fabs(f_old - f) < 1e-8) {
         // successive function values too similar
         break;
-      }
+    }
 #endif
       ++this->m_current.iterations;
       this->m_current.gradNorm = g.norm();
       this->m_status = checkConvergence(this->m_stop, this->m_current);
-    }
+
+      // SAK : moved this test inside so that we can record the reason for stopping
+      TVector xTest = (x - g).cwiseMax(problem.lowerBound()).cwiseMin(problem.upperBound());
+      if (xTest.lpNorm<Eigen::Infinity>() < tolX)   // not moving or stuck at boundary
+        this->m_status  = Status::XDeltaTolerance;
+  }
     x0 = x;
     if (this->m_debug > DebugLevel::None) {
-        std::cout << "Stop status was: " << this->m_status << std::endl;
-        std::cout << "Stop criteria were: " << std::endl << this->m_stop << std::endl;
-        std::cout << "Current values are: " << std::endl << this->m_current << std::endl;
+      std::cout << "Stop status was: " << this->m_status << std::endl;
+      std::cout << "Stop criteria were: " << std::endl << this->m_stop << std::endl;
+      std::cout << "Current values are: " << std::endl << this->m_current << std::endl;
     }
-  }
+}
 };
 }
 /* namespace cppoptlib */
