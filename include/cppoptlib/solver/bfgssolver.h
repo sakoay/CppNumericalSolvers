@@ -38,7 +38,7 @@ class BfgsSolver : public ISolver<ProblemType, 1> {
             Scalar phi = grad.dot(searchDir);
 
             // positive definit ?
-            if (phi > 0) {
+            if (phi > 0 || phi != phi) {
                 // no, we reset the hessian approximation
                 H = THessian::Identity(DIM, DIM);
                 searchDir = -1 * grad;
