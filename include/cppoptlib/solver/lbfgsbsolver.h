@@ -303,7 +303,7 @@ public:
 
       // SAK : moved this test inside so that we can record the reason for stopping
       TVector xTest = (x - g).cwiseMax(problem.lowerBound()).cwiseMin(problem.upperBound());
-      if (xTest.lpNorm<Eigen::Infinity>() < tolX)   // not moving or stuck at boundary
+      if (xTest.template lpNorm<Eigen::Infinity>() < tolX)   // not moving or stuck at boundary
         this->m_status  = Status::XDeltaTolerance;
   }
     x0 = x;
